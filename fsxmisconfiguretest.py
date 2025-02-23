@@ -1,6 +1,6 @@
 import boto3
 client = boto3.client('fsx')
-response = client.describe_file_systems( FileSystemIds=["fs-08ab18183d65c0a41"])
+response = client.describe_file_systems( FileSystemIds=["fsx-id"])
 
 print (response['FileSystems'][0]['Lifecycle'])
 
