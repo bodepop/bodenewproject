@@ -3,7 +3,7 @@ import paramiko
 # Define the variables
 fsx_management_ip = '172.31.4.134'
 username = 'fsxadmin'
-password = 'Ebunoluwa1/'
+password = '**************'
 vserver_name = 'svm1'
 
 # Specify the commands to run in the correct order
