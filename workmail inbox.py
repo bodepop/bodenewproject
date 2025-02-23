@@ -3,8 +3,8 @@ from imapclient import IMAPClient
 
 #user details
 server_endpoint= "imap.mail.us-east-1.awsapps.com"
-email_address="bode@bodeconsulting.com"
-user_password="Ebunoluwa1/"
+email_address="joe@example.com"
+user_password="*************"
 
 #start the connection
 server = IMAPClient(server_endpoint, use_uid=True)
