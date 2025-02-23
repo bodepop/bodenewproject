@@ -1,0 +1,461 @@
+
+
+Accessing CIFS shares on Amazon FSx for NetApp ONTAP remotely using AWS Client VPN.
+
+
+With remote working becoming a popular and viable option for both employees and companies, the need for secure file access for company data to maintain data accuracy, ensure the continuity of the organization and provide highly durable storage has never been more important. As employees are also growing accustomed to a more flexible work environment, companies have to  figure out how to provide end users with the ability to access company data securely from a distant location. One of the most common function of remote working is to enable employees who are traveling or telecommuting to connect remotely to access resources such as home directories, user and departmental shares, and even media workloads where high throughput and low latency is a requirement.
+
+For ease of use and increased productivity, organizations are looking for shared file access that can be mounted as a network drive using built-in Windows, macOS, Linux, Android and iOS tools. Customers are also interested in a (Mobile Device Management) solution that enables IT administrators to secure, control and enforce policies on devices that can access their shared data or even, location where employee can access the company's data from.  Organizations can  enforce additional security authorization policies on the connections to a Client VPN endpoint by configuring a client connect handler to enforce policies which can stipulates a particular user, device or location can only have access to the shared file.
+
+In this blog, I walk through creating a highly available, fully managed CIFS share on Amazon FSx for NetApp ONTAP accessible from personal device using AWS Client VPN and configure a client connect handler to enforce additional security policies on connections to a Client VPN endpoint.
+
+Amazon FSx for NetApp ONTAP is a fully managed service that provides highly reliable, scalable, high-performing, and feature-rich file storage built on NetApp's popular ONTAP file system. FSx for ONTAP combines the familiar features, performance, capabilities, and API operations of NetApp file systems with the agility, scalability, and simplicity of a fully managed AWS service.
+
+AWS Client VPN is a fully-managed remote access VPN solution used by your remote workforce to securely access resources within both AWS and your on-premises network. You can configure a client connect handler for your Client VPN endpoint. The handler enables you to run custom logic that authorizes a new connection, based on device, user, and connection attributes. The client connect handler runs after the Client VPN service has authenticated the device and user. 
+
+
+Overview of solution
+ 
+For the solution in this blog post, I create an AWS Managed Microsoft AD using AWS Directory Service to allow for authentication and authorization to access client VPN  endpoint and CIFS shares, a Multi-AZ Amazon FSx for NetApp ONTAP to host the shared files, create and join SVM to an Active Directory, create a new Flexvol volume, create a CIFS (common internet file system), create AWS Client VPN endpoint and gateway to enable remote access and enforce VPN access policies with AWS Client VPN connection handler. To ensure high availability, the AWS Managed Microsoft AD and Amazon FSx for NetApp ONTAP are spread over two AWS Availability Zones. Amazon FSx for NetApp Ontap also supports creating file systems linked to an existing on-premises Active Directory directly without the need to migrate identities over to an AWS Managed Microsoft AD. If your organization manages identities and devices on a self-managed Active Directory (on-premises or in the cloud), you can join your Amazon FSx file system's SVMs directly to your existing self-managed AD domain. When you join your Amazon FSx file system's SVMs directly to your self-managed AD, your Amazon FSx file system's SVMs resides in the same AD forest (the top-most logical container in an AD configuration that contains domains, users, and computers) and in the same AD domain as your users and existing resources (including any existing file servers).
+
+
+Tutorial
+ 
+In this blog, I do the following:
+- Configure an Amazon Virtual Private Cloud (Amazon VPC) – this provides an isolated network for your Amazon FSx deployment.
+- Create an AWS Managed Microsoft AD using AWS Directory Service to join SVM to. An Active Directory is required for Amazon FSx file system's SVMs to allow access to the cifs share, and is used to connect to the VPN.
+- Create an Amazon FSx for NetApp ONTAP file system – this creates the file system that acts as a central repository.
+- Create a SMB file share 
+- Create an AWS Client VPN endpoint – this enables VPN access to the Amazon VPC.
+- Create client connect handler Lambda function
+- Connect to the VPN from a personal device (Microsoft Windows)
+- Mount a file share to a Microsoft Windows
+- Test client connect handler Lambda function on a MacOS
+
+
+Prerequisites
+For this tutorial, you should have the following prerequisites:
+	• An AWS account
+
+Configure Amazon VPC for AWS Managed Microsoft AD and Amazon FSx
+
+First, I create a new Amazon VPC for my Amazon FSx deployment.
+
+Create a new Amazon VPC
+	1. Log in to the Amazon VPC console.
+	2. Select Your VPCs in the sidebar, then Create VPC.
+	3. Name your Amazon VPC and enter an IPv4 CIDR block of 10.0.0.0/16. Then choose Create.
+
+
+
+
+
+Add subnets
+
+To create a solution across multiple Availability Zones, and to logically separate each aspect of my architecture, I create seven subnets – two for AWS Managed Microsoft AD and two for Amazon FSx for Windows File Server,
+	1. Select Subnets in the sidebar, then Create Subnet.
+	2. As shown in the following screenshot, for Name tag, enter Microsoft-AD-1. Select the Amazon VPC you just created, and select an Availability Zone. Set a CIDR block of 10.0.1.0/24. 
+	
+Note: If you create your file system from the Amazon FSx console, by default Amazon FSx chooses the last 64 IP addresses from the VPC's primary CIDR range to be used as the endpoint IP address range for the file system
+
+
+
+
+
+As shown in the following screenshot, repeat the preceding step, with subnets named Microsoft-AD-2, FSxN-1 and FSxN-2, using different CIDR blocks for each. Microsoft-AD-2 and FSx-2 should be in a different Availability Zone than Microsoft AD-1 and FSx-1. I put Microsoft-AD-1 and FSxN-1 in us-east-2a, Microsoft-AD-2 and FSxN-2 are in us-east-2b.
+
+Note:  By default Amazon FSx chooses the last 64 IP addresses from the VPC's primary CIDR range to be used as the endpoint IP address range for the file system.
+
+
+
+
+
+
+Create AWS Managed Microsoft AD
+In this step, I create a new AWS Managed Microsoft AD. To use a self-managed Active Directory, make sure all prerequisites here are met.
+
+
+	1. Log in to the Directory Service console.
+	2. Select Set up directory. Select a directory type of AWS Microsoft AD, then Next.
+	3. As shown in the following screenshot, choose your Active Directory Edition. For this tutorial, I use the Standard Edition. Define a Directory DNS name (for example, example.com). If you’d like, add a Directory NetBIOS name. Next, add an Admin password, and make a note of it
+
+
+
+
+
+
+
+	4. Under VPC, select your new Amazon VPC, and under Subnets, choose the subnets you created for the AWS Managed Microsoft AD. This is shown in the following screenshot: 
+
+
+
+
+
+
+Click Next, review your directory, then click Create directory. Directory creation typically takes between 20 to 45 minutes. In the directory details, note the DNS addresses and save them for later.
+
+
+
+Create DHCP options set
+The steps in the section enable devices not tied to an Active Directory to connect to the Amazon FSx file system's SVMs using its DNS name. If the devices connecting already use Active Directory for DNS resolution, you can skip this step.
+
+1. Open the Amazon VPC console at https://console.aws.amazon.com/vpc/
+2. In the navigation pane, choose DHCP Options Sets, and then choose Create DHCP options set.
+3. On the Create DHCP options set page, enter the Name,  Domain name and Domain name servers (The IP addresses of your AWS-provided directory's DNS servers. )
+4. Choose Create DHCP options set. The new set of DHCP options appears in your list of DHCP options.
+5. Navigate to the Amazon VPC details, and click Actions, then Edit DHCP options set.
+6. For DHCP options set, select an options set or choose No DHCP options set, and then choose Save.
+
+
+Creating Amazon FSx for NetApp ONTAP and join to AWS Managed AD.
+
+For Creation method, choose Standard create and begin your configuration with the File system details section.
+
+
+
+
+7. For Network & security,  choose the VPC, security group, preferred subnet, standby subnet, VPC route tables and Endpoint IP address range that you want to associate with your file system. In this exercise, for Endpoint IP address range we choose "Endpoint IP address range" (Simplest option for access from other AWS services or peered / on-premises networks).
+NOTE: Amazon FSx recommends that you choose an endpoint IP address range that’s within your VPC’s IP address range to simplify your networking setup, especially when accessing your data from other AWS services or other networks (on-premises networks or peered networks in AWS). By default, Amazon FSx will select an IP address range at the end of your VPC’s IP address range (if there are no overlapping subnets), but you can optionally choose your own IP address range.
+
+
+
+In the Security & encryption section, for Encryption key, choose the AWS Key Management Service (AWS KMS) encryption key that protects your file system's data at rest.
+
+
+
+
+In the Default storage virtual machine configuration section, provide the required information
+
+
+
+For default volume configuration, provide Volume name, Volume type (Read-Write (RW)), Junction path, Volume size, Storage efficiency, Capacity pool tiering policy and Snapshot policy and click Next.
+
+
+
+Review the file system configuration on the Create ONTAP file system page. Choose Create file system.
+
+
+
+
+Create CIFS share 
+
+1. Establish an SSH session with both Ontap file systems using user fsxadmin and the password that you set when you created the file systems.
+
+
+
+2. Create a CIFS share to share the testshare directory using CIFS/SMB protocol with Windows Clients.
+
+vserver cifs share create -vserver svm1 -share-name testshare -path /vol1
+
+
+3. Run below command to check if the share was created successfully.
+
+vserver cifs share show -vserver svm1
+
+
+
+Create Client VPN endpoint
+
+To access the file share, you must set up a VPN connection. This consists of four parts: creating a server certificate, creating client connect handler Lambda function and creating a Client VPN endpoint.
+Create the server certificate
+
+
+Follow the instructions here to create a server certificate using the OpenVPN easy-rsa tool, Upload the server certificate and key and the client certificate and key to AWS Certificate Manager (ACM).
+
+
+
+
+
+
+
+
+
+
+
+
+
+Setting up the client connect handler Lambda function
+
+You will write an AWS Lambda function that is invoked synchronously by the service (after user and device authentication) when a new VPN session connection is attempted by an end user. The Lambda function can be customized to enforce the security policies of the enterprise.
+
+	1. The name for this Lambda function for this exercise is with ‘AWSClientVPN- 
+	2. Lambda function should exist in the same AWS account, and the same AWS region that the Client VPN endpoint is deployed.
+4. The following is a sample reference sample AWS Lambda function in Python that only users with Windows Machines are able to connect to CVPN Endpoint.
+
+
+
+ 
+import json
+def lambda_handler(event, context):
+    if event["platform"] == "win":
+        return {
+            "allow": True,
+            "error-msg-on-failed-posture-compliance": "Your device is compliant",
+            "posture-compliance-statuses": ["Compliant"],
+            "schema-version": "v1"        
+        }
+    return {
+        "allow": False,
+        "error-msg-on-failed-posture-compliance": "Your device is not compliant. Please contact your Administrator",
+        "posture-compliance-statuses": ["QUARANTINED"],
+        "schema-version": "v1"        
+    }
+
+(Additional examples of AWS Lambda functions are provided at the bottom of this post.)
+
+Setting up Client VPN endpoint
+
+
+1. Navigate back to the Amazon VPC console. In the sidebar, select Client VPN Endpoints. Choose Create Client VPN Endpoint and give the endpoint a name of VPN Endpoint. Afterward, enter a CIDR range of 10.220.0.0/22.
+2. Under Server certificate ARN, select the server certificate that was imported.
+3. F  For authentication options, select Use user-based authentication. For User-based authentication options, select Active directory authentication and choose the Active Directory you have created.
+4. Select if you want to Connection logging enabled
+5. For authentication options, select Use user-based authentication. For User-based authentication options, select Active directory authentication and choose the Active Directory you have created.
+6. In Other parameters – optional, enter the DNS addresses from the AWS Managed Microsoft AD. Enable split-tunnel, choose the Amazon VPC, and select the VPN security group. Click Create Client VPN Endpoint.
+7. Select the endpoint, then choose Download Client Configuration.
+
+Attach Client VPN endpoint to Amazon VPC Subnets
+
+
+1. Select the endpoint that was just created and go to Target network associations, click Associate target network. Select the subnet ID for VPN-1. Repeat the association process with the subnet ID for VPN-2.
+2. To allow ingress from the VPN connections, go to Authorizations, select Add authorization rule and enter the Amazon VPC CIDR as the destination network. Click Add authorization rule:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Map share to Windows Instance
+
+In this section, I cover connecting your device to your VPC via your AWS Client VPN endpoint, then I go through mounting your CIFS share. AWS Client VPN supports any OpenVPN-supported VPN client and you can also use AWS client.
+
+Connecting to OpenVPN
+For information about the OpenVPN client application, see Community Downloads on the OpenVPN website.
+
+To establish a VPN connection
+ 
+1. Start the OpenVPN client application.
+2.  On the Windows taskbar, choose Show/Hide icons, right-click OpenVPN GUI, and choose Import file.
+
+3.  In the Open dialog box, select the configuration file that you downloaded after creating the client-VPN endpoint and choose Open.
+4. On the Windows taskbar, choose Show/Hide icons, right-click OpenVPN GUI, and choose Connect.
+
+
+Mounting CIFS share to a Microsoft Windows Machine.
+ 
+1.In a new File Explorer window, click on Network, then Map Network Drive.
+2. Select a drive letter, and enter \\SVM DNS name\<sharename>
+3. Check Connect using different credentials, then click Finish.
+4. When prompted, enter your administrator credentials as admin@<Active Directory domain>:
+
+
+
+4. When prompted, enter your administrator credentials as admin@<Active Directory domain>:
+
+
+
+
+ 
+Test VPN access policies with AWS Client VPN connection handler.
+ 
+Remember we configured a client connect handler for our Client VPN endpoint to only allow only users with Windows Machines to connect to CVPN Endpoint. We are going to try and  mount the CIFS share from a macOS. The client connect handler will run after the Client VPN service has authenticated the device and user. 
+
+
+
+
+Create Client VPN endpoint
+
+To access the file share, you must set up a VPN connection. This consists of three parts: creating a server certificate and creating a Client VPN endpoint
+
+Create the server certificate
+
+
+	1. Follow the instructions here to create a server certificate using the OpenVPN easy-rsa tool, Upload the server certificate and key and the client certificate and key to ACM.
+	2. Follow the instructions here to create a server certificate using the OpenVPN easy-rsa tool.
+	3. Once you have created the certificate, navigate to the AWS Certificate Manager (ACM) console.
+	4. Select Import certificate, If you have used ACM before, you should have the option to import a certificate on the dashboard.
+	5. First, import the server certificate. Open the ca.crt, server.crt, and server.key that you made with easy-rsa in a text editor. Copy and paste the contents of server.crt into the certificate body field, the contents of server.key into the certificate private key field, and the contents of ca.crt into the certificate chain field. Click Next.
+	6. Optionally, add tags. Click review and import, then import:
+
+
+
+
+
+Create Client VPN endpoint
+ 
+1.  Navigate back to the Amazon VPC console. In the sidebar, select Client VPN Endpoints. Choose Create Client VPN Endpoint and give the endpoint a name of VPN Endpoint. Afterward, enter an IP address range, in CIDR notation, from which client IP addresses are allocated.
+2. In Authentication information, Under Server certificate ARN, select the server certificate that was imported.
+ 
+3. Under User-based authentication options, select Active directory authentication. Choose the Active Directory.
+ 
+4.(Optional) Enable Connection logging and Client connect handler if you wany
+ 
+5.In Other parameters, enter the DNS addresses from the AWS Managed Microsoft AD. Enable split-tunnel, choose the Amazon VPC, select the VPN security group and enter the VPN port you wish to use. Click Create Client VPN Endpoint.
+ 
+6. Select the endpoint, then choose Download Client Configuration.
+
+
+
+Client Connect Handler Examples
+ 
+Sample Snippets for some Posture Assessment with Lambda.
+ 
+Scenario 1
+ 
+If you want to make sure that certain AD users cannot access the CIFS shares using their AD credentials.
+ 
+import json
+def lambda_handler(event, context):
+    if event["username"] == "johndoe":
+        return {
+            "allow": False,
+            "error-msg-on-failed-posture-compliance": "You are not allowed to connect to Endpoint. Please contact your Network Administrator",
+            "posture-compliance-statuses": ["Restricted"],
+            "schema-version": "v1"        
+        }
+    return {
+        "allow": True,
+        "error-msg-on-failed-posture-compliance": "Allowed User",
+        "posture-compliance-statuses": ["Compliant"],
+        "schema-version": "v1"        
+    }
+ 
+Scenario 2
+ 
+If you want to make sure that only users with Windows Machines are allowed to connect to CVPN Endpoint.
+ 
+import json
+def lambda_handler(event, context):
+    if event["platform"] == "win":
+        return {
+            "allow": True,
+            "error-msg-on-failed-posture-compliance": "Your device is compliant",
+            "posture-compliance-statuses": ["Compliant"],
+            "schema-version": "v1"        
+        }
+    return {
+        "allow": False,
+        "error-msg-on-failed-posture-compliance": "Your device is not compliant",
+        "posture-compliance-statuses": ["QUARANTINED"],
+        "schema-version": "v1"        
+    }
+ 
+Scenario 4
+ 
+If you want to make sure that Apple devices users are not allowed to connect to access the VPC resources.
+ 
+import json
+def lambda_handler(event, context):
+    if event["platform"] == "ios":
+        return {
+            "allow": False,
+            "error-msg-on-failed-posture-compliance": "Apple devices are not allowed on the Netwok",
+            "posture-compliance-statuses": ["QUARANTINED"],
+            "schema-version": "v1"        
+        }
+    return {
+        "allow": True,
+        "error-msg-on-failed-posture-compliance": "",
+        "posture-compliance-statuses": ["COMPLIANT"],
+        "schema-version": "v1"        
+    }
+ 
+Scenario 5
+ 
+To make sure that only users with the latest version of Openvpn client can connect to Endpoint.
+ 
+import json
+def lambda_handler(event, context):
+    if event["client-openvpn-version"] == "3.git::3e56f9a6":
+        return {
+            "allow": True,
+            "error-msg-on-failed-posture-compliance": "The device is compliant",
+            "posture-compliance-statuses": ["Compliant"],
+            "schema-version": "v1"        
+        }
+    return {
+        "allow": False,
+        "error-msg-on-failed-posture-compliance": "Your device does not have the latest version of Openvpn client installed",
+        "posture-compliance-statuses": ["QUARANTINED"],
+        "schema-version": "v1"        
+    }
+ 
+Scenario 7
+ 
+Trainee engineer must use office laptop (running Windows) and should be connecting from his fixed location only (using one static public IP).
+ 
+import json
+def lambda_handler(event, context):
+    if (event["username"] == "johndoe" and event["platform"] == "win" and event["public-ip"] == "52.94.46.20"): 
+        return {
+            "allow": True,
+            "error-msg-on-failed-posture-compliance": "The device is compliant",
+            "posture-compliance-statuses": ["Compliant"],
+            "schema-version": "v1"        
+        }
+    return {
+        "allow": False,
+        "error-msg-on-failed-posture-compliance": "The device is not compliant",
+        "posture-compliance-statuses": ["QUARANTINED"],
+        "schema-version": "v1"        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+For ease of use and increased productivity, customers are looking for shared file access that can be mounted as a network drive using built-in Windows, macOS, Linux, Android and iOS tools. They also want a repository that is searchable and follows a standard file system architecture. Common use cases include home directories, user and departmental shares, and even media workloads where high throughput and low latency is a requirement.
+
+Amazon FSx for NetApp ONTAP is a fully managed service that provides highly reliable, scalable, high-performing, and feature-rich file storage built on NetApp's popular ONTAP file system. FSx for ONTAP combines the familiar features, performance, capabilities, and API operations of NetApp file systems with the agility, scalability, and simplicity of a fully managed AWS service.
+
+In this blog, I walk through creating a highly available Multi-AZ file systems, fully managed cifs share accessible from personal devices using a virtual private network (VPN).
+
+
+
+Overview of solution
+
+
+For the solution in this blog post, I create an AWS Managed Microsoft AD using AWS Directory Service to allow for authentication and authorization to access CIFS shares, a Multi-AZ Amazon FSx for NetApp ONTAP to host the CIFS shares, create and join SVM to an active directory, create a new Flexvol volume, create a CIFS (common internet file system) and an AWS Client VPN endpoint and gateway to enable remote access. To ensure high availability, each component is spread over two AWS Availability Zones. Amazon FSx for NetApp Ontap also supports creating file systems linked to an existing, on-premises Active Directory directly without the need to migrate identities over to an AWS Managed Microsoft AD.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
