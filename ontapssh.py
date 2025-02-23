@@ -21,8 +21,11 @@ class SSHConnection:
 
     def get_secret(self) -> str:
         """Retrieve password from AWS Secrets Manager"""
-        secret_name = "fsx/ssh/key"  # Replace with your secret name
-        region_name = "eu-west-1"       # Replace with your AWS region
+        # Replace with your secret name
+        secret_name = "fsx/ssh/key" 
+
+         # Replace with your AWS region
+        region_name = "eu-west-1"     
 
         try:
             session = boto3.session.Session()
