@@ -6,11 +6,11 @@ from email.mime.text import MIMEText
 # SMTP server configuration
 smtp_server = "email-smtp.eu-west-1.amazonaws.com"
 smtp_port = 465
-smtp_username = "admin@bodeconsulting.com"
-smtp_password = "Ebunoluwa1/"
+smtp_username = "joe@example.com"
+smtp_password = "************"
 
 # Email recipient
-recipient_email = "bodep85@gmail.com"
+recipient_email = "john@example.com"
 
 # List of known devices
 known_devices = ["device1", "device2", "device3"]
