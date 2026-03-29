@@ -1,0 +1,60 @@
+
+
+File Sharing with Amazon FSx for NetApp ONTAP
+
+The infrastructure elasticity and pay-per-use pricing model were two key factors that drove many organizations to shift workloads towards the cloud in the past decade, including file sharing. To meet this need, Amazon introduced the AWS FSx series, offering native AWS file services tailored to specific file systems. For ONTAP users, that service is Amazon FSx for NetApp ONTAP.
+ Read on below as we cover:
+• What Is FSx for ONTAP?
+• FSx for ONTAP File Sharing Capabilities and Integrations
+• NFS and SMB Support
+• iSCSI
+• AWS Workspaces and AppStream 2.0
+What Is FSx for ONTAP?
+The new FSx for ONTAP, a collaboration between AWS and NetApp, challenges that status quo when it comes to file sharing storage capabilities. FSx for ONTAP provides new ways to solve technical challenges and greatly simplifies system architectures that were once complex and hard to implement, such as multi-region, hybrid, and multicloud deployments.
+FSx for ONTAP can be accessed directly through the AWS Console or by using NetApp BlueXP Console, which is the centralized control portal for all of NetApp’s cloud-based services.
+FSx for ONTAP’s benefits include:
+• Multi-AZ high availability
+• Built-in NetApp storage efficiencies
+• Cost-effective data protection with NetApp Snapshot™ technology, built-in backup capabilities, and seamless disaster recovery processes
+• Multiprotocol file and block storage support
+• GUI or RESTful API access and control through BlueXP Console
+• Native integration with AWS services
+In this article, we are going to explore the file sharing capabilities of this new service and highlight the opportunities they present to engineering teams.
+FSx for ONTAP File Sharing Capabilities and Integrations
+As a public cloud provider pioneer, AWS offers different types of cloud storage services (block, file share and object). Cloud-based file share storage is a popular option because it combines well-known interfaces and interoperability advantages with the scalability and pricing benefits of cloud.
+One of the great things about FSx for ONTAP is that it combines capabilities you might find spread across different cloud services and brings together the best of different worlds. There’s no longer a need to use one service for SMB workloads and another service for NFS. FSx for ONTAP does it all. Not only that, but since AWS FSx pricing is billed according to your usage, it’s a cost-effective solution.
+As a fully native AWS service, there are intrinsic integrations with AWS billing and monitoring services. More importantly it provides access to common storage interfaces and integrations—more on which we’ll cover below—enabling interoperability with existing architectures.
+With FSx for ONTAP, you get the familiar NetApp built-in capabilities such as data protection for Amazon FSx, storage efficiencies, and the ability to operate across different providers, making it suitable for hybrid and multicloud architectures as well as complex enterprise environments.
+NFS and SMB
+The two most common and important interfaces for file sharing storage are the Server Messaging protocol (SMB/CIFS) and the Network File System (NFS).
+NFS and SMB/CIFS are not new technologies—both of them have been around for many years and are widely used and supported. As such, a file service that can support them both is beneficial for any file sharing storage platform.
+Both NFS and SMB/CIFS are network-based file system protocols, where a storage server makes a file system available to multiple clients. This gives interoperability with any Linux, OS X, and Windows operating systems, making it possible to switch from a file share service to another one without having to re-architect the entire system.
+A key advantage of these interfaces is in use cases such as cloud migration or hybrid and multicloud scenarios, since NFS and SMB are supported at the client operating system regardless of the environment.
+For file sharing in an AWS environment, you would typically choose between AWS EFS (NFS) or Amazon FSx for Windows (SMB), depending on the operating system you use and the workload type. With the introduction of FSx for ONTAP you no longer need to choose one of those over the other, or run both since multi-protocol NFS/SMB access is available out of the box for all storage volumes.
+
+Volume protocol selection using BlueXP Console
+This simplifies your storage layer and avoids making cumbersome data transfers between different AWS storage services based on the interface protocol you need.
+For security and access management, server-side encryption can be enabled for FSx for ONTAP data volumes. Connectivity can be restricted using customizable export policies for NFS and by connecting with an existing Microsoft Active Directory domain for SMB/CIFS shares.
+
+Authentication and authorization for SMB/CIFS connectivity
+In addition to the dual protocol access, another aspect to take into account is that FSx for ONTAP supports all protocol versions out of the box: NFSv3, NFSv4.1, SMB2 and SMB3.1.1.
+iSCSI
+The Internet Small Computer Systems Interface (iSCSI) protocol has been around since the late 1990s as a reliable way to interface with data storage systems. Similarly, to NFS and SMB, iSCSI also works via the network. However, there are some significant differences regarding its typical application.
+Unlike SMB and NFS, which are mainly used to make the same storage file share available to one or more client machines as a means to access data sets, iSCSI shares are primarily focused on providing client machines with an operating system storage fabric. This means that FSx for ONTAP can be used to provide a unified central storage for all your virtual machines’ needs, i.e., both for application data and the operating system.
+Using iSCSI, organizations can consolidate storage, and client machines can run without the need of a local storage or file system. Due to its intrinsic properties, iSCSI gives client machines the illusion of having a locally attached storage disk even though one may not be present, making it very easy to adopt regardless of the environment and system architecture.
+In the AWS ecosystem, until now the only native service providing an iSCSI interface was AWS Storage Gateway, specifically to enable migrations and allow on-premises appliances to interface with other AWS services.
+With the new FSx for ONTAP, iSCSI volumes can be provisioned using BlueXP Console. This can be used to accelerate cloud migration projects and to enable use cases such as disaster recovery.
+One of the key challenges for a system providing an iSCSI interface is reliability. Since iSCSI is giving the operating system the illusion of a local attached disk, a network delay or disruption has a direct negative impact on the system. FSx for ONTAP is a high-performance service, with speeds up to 2GB/s and offering reliable low latencies (=1ms), making it ideal to solve these complex scenarios.
+AWS Workspaces and AppStream 2.0
+AWS WorkSpaces provides users with a cloud-based persistent desktop environment. As a native and fully managed service, it enables Windows or Linux desktops to be provisioned on demand in a few minutes.
+AppStream 2.0, is another AWS-native service, providing desktop and application virtualization capabilities. There are a lot of similarities between these two managed services, however AppStream 2.0 is mostly focused on individual desktop applications and enabling moving existing legacy applications to AWS. In addition, contrary to WorkSpaces, the desktop environments in the AppStream 2.0 service are non-persistent.
+Since its general availability release date, FSx for ONTAP provides a native integration with both AWS Workspaces and AppStream 2.0. Storage is an important enabler in any Desktop as a Service use case. With this newly built-in integration available, AWS customers can natively extend the capabilities of Workspaces and AppStream 2.0 and provide desktop users or legacy applications with data management capabilities such as data protection and hybridity across multiple regions and environments.
+Conclusion
+Having the right access protocols and advanced data management capabilities are incredibly important in a storage service. They directly impact adoptability and interoperability with existing customer systems and architectures. The new Amazon FSx for NetApp ONTAP does this all as the first native AWS service able to provide support to all NFS, SMB, and iSCSI versions, with built-in integrations for existing AWS services.
+FSx for ONTAP data volumes are highly available in the majority of AWS global regions, including GovCloud. Moreover, there are additional benefits that can be unlocked by leveraging the BlueXP Console control plane and APIs, such as enhanced data mobility with SnapMirror® and Cloud Sync, DevOps agility with FlexClone®, and data governance with Cloud Data Sense.
+The most exciting part of FSx for ONTAP is that it gives engineering teams the best of both worlds, the native-AWS fully managed service experience that provides a tight integration within the AWS ecosystem, including consolidated billing and support, combined with the NetApp advanced enterprise-grade data management capabilities such as multi-AZ high availability, data protection with snapshots and DR, storage efficiencies, life cycle management and more.
+FSx for ONTAP is much more than a cloud file share service. It’s an integrated business-data platform that can accelerate your digital transformation strategy and enable cloud migration or multi-cloud scenarios.
+Click here for a step-by-step walkthrough on how to set up your own FSx for ONTAP environment with BlueXP Console.
+
+
+
