@@ -1,0 +1,16 @@
+# Private keys - NEVER commit these
+*.pem
+
+# Virtual environments
+.venv/
+.vscode/
+.kiro/
+
+# CV files
+Bode_Popoola_CV_Final.md
+Bode_Popoola_CV.html
+improved_cv_bode_popoola.md
+
+# Python
+__pycache__/
+*.pyc

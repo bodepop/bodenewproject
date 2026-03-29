@@ -1,0 +1,28 @@
+{
+  "name": "personal-profile-website",
+  "version": "1.0.0",
+  "description": "Professional single-page profile website optimized for Windows IIS",
+  "main": "index.html",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": ["profile", "portfolio", "website", "IIS"],
+  "author": "Profile Owner",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "fast-check": "^3.15.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testMatch": ["<rootDir>/tests/**/*.test.js"],
+    "collectCoverageFrom": [
+      "js/**/*.js",
+      "!js/**/*.min.js"
+    ]
+  }
+}

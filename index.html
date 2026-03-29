@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional profile website showcasing skills, experience, and contact information">
+    <meta name="keywords" content="profile, portfolio, professional, developer, contact">
+    <meta name="author" content="Profile Owner">
+    <title>Professional Profile</title>
+    
+    <!-- Resource Optimization -->
+    <script src="js/resource-optimizer.js"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/styles.min.css">
+    <link rel="stylesheet" href="css/responsive.min.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/styles.min.css" as="style">
+    <link rel="preload" href="js/main.min.js" as="script">
+    <link rel="preload" href="images/profile-placeholder.svg" as="image">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+<body>
+    <!-- Header Section -->
+    <header id="header" class="header">
+        <nav class="nav" role="navigation" aria-label="Main navigation">
+            <ul class="nav-list">
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#skills" class="nav-link">Skills</a></li>
+                <li><a href="#experience" class="nav-link">Experience</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </nav>
+        
+        <div class="hero">
+            <div class="hero-content">
+                <img src="images/profile-small.svg" 
+                     data-src="images/profile-placeholder.svg" 
+                     alt="Professional profile photo" 
+                     class="profile-photo" 
+                     loading="lazy"
+                     width="260" 
+                     height="260"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="profile-photo-fallback" style="display: none; width: 200px; height: 200px; border-radius: 50%; background: var(--secondary-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; margin: 0 auto var(--spacing-xl);">👤</div>
+                <h1 class="profile-name">Your Name</h1>
+                <h2 class="profile-title">Professional Title</h2>
+                <p class="profile-tagline">Brief professional tagline or elevator pitch</p>
+            </div>
+            <div class="scroll-indicator" onclick="document.getElementById('about').scrollIntoView({behavior: 'smooth'})">
+                ↓
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- About Section -->
+        <section id="about" class="section about-section">
+            <div class="container">
+                <h2 class="section-title">About Me</h2>
+                <div class="about-content">
+                    <div class="bio-content">
+                        <p class="bio">I am a passionate professional with extensive experience in my field. My journey began with a strong foundation in technology and has evolved into a comprehensive skill set that spans multiple disciplines. I believe in continuous learning and staying at the forefront of industry trends.</p>
+                        <p class="bio">Throughout my career, I have successfully delivered numerous projects, collaborated with diverse teams, and consistently exceeded expectations. My approach combines technical expertise with creative problem-solving, ensuring that every project I work on delivers exceptional value and results.</p>
+                        <div class="achievements-highlight">
+                            <h3 class="achievements-title">Key Highlights</h3>
+                            <ul class="achievements-list">
+                                <li>Successfully completed 50+ projects across various industries</li>
+                                <li>Led cross-functional teams of up to 15 members</li>
+                                <li>Recognized for innovation and excellence in professional practice</li>
+                                <li>Contributed to open-source projects with 1000+ stars</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="location-info">
+                        <div class="location">
+                            <span class="location-label">Location:</span>
+                            <span class="location-value">San Francisco, CA</span>
+                        </div>
+                        <div class="availability">
+                            <span class="availability-label">Availability:</span>
+                            <span class="availability-value">Open to opportunities</span>
+                        </div>
+                        <div class="languages">
+                            <span class="languages-label">Languages:</span>
+                            <span class="languages-value">English (Native), Spanish (Conversational)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="section skills-section">
+            <div class="container">
+                <h2 class="section-title">Skills & Competencies</h2>
+                <div class="skills-content">
+                    <div class="skill-category">
+                        <h3 class="category-title">Technical Skills</h3>
+                        <ul class="skill-list">
+                            <li class="skill-item">
+                                <span class="skill-name">JavaScript/TypeScript</span>
+                                <div class="skill-indicator" data-proficiency="5">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 100%"></div>
+                                    </div>
+                                    <span class="skill-level">Expert</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">React/Next.js</span>
+                                <div class="skill-indicator" data-proficiency="5">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 100%"></div>
+                                    </div>
+                                    <span class="skill-level">Expert</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Node.js/Express</span>
+                                <div class="skill-indicator" data-proficiency="4">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 80%"></div>
+                                    </div>
+                                    <span class="skill-level">Advanced</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Python/Django</span>
+                                <div class="skill-indicator" data-proficiency="4">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 80%"></div>
+                                    </div>
+                                    <span class="skill-level">Advanced</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">SQL/NoSQL Databases</span>
+                                <div class="skill-indicator" data-proficiency="4">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 80%"></div>
+                                    </div>
+                                    <span class="skill-level">Advanced</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">AWS/Cloud Services</span>
+                                <div class="skill-indicator" data-proficiency="3">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 60%"></div>
+                                    </div>
+                                    <span class="skill-level">Intermediate</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="skill-category">
+                        <h3 class="category-title">Professional Skills</h3>
+                        <ul class="skill-list">
+                            <li class="skill-item">
+                                <span class="skill-name">Project Management</span>
+                                <div class="skill-indicator" data-proficiency="5">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 100%"></div>
+                                    </div>
+                                    <span class="skill-level">Expert</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Team Leadership</span>
+                                <div class="skill-indicator" data-proficiency="4">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 80%"></div>
+                                    </div>
+                                    <span class="skill-level">Advanced</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Communication</span>
+                                <div class="skill-indicator" data-proficiency="5">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 100%"></div>
+                                    </div>
+                                    <span class="skill-level">Expert</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Problem Solving</span>
+                                <div class="skill-indicator" data-proficiency="5">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 100%"></div>
+                                    </div>
+                                    <span class="skill-level">Expert</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Agile/Scrum</span>
+                                <div class="skill-indicator" data-proficiency="4">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 80%"></div>
+                                    </div>
+                                    <span class="skill-level">Advanced</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Mentoring</span>
+                                <div class="skill-indicator" data-proficiency="4">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 80%"></div>
+                                    </div>
+                                    <span class="skill-level">Advanced</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="skill-category">
+                        <h3 class="category-title">Tools & Technologies</h3>
+                        <ul class="skill-list">
+                            <li class="skill-item">
+                                <span class="skill-name">Git/GitHub</span>
+                                <div class="skill-indicator" data-proficiency="5">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 100%"></div>
+                                    </div>
+                                    <span class="skill-level">Expert</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Docker/Kubernetes</span>
+                                <div class="skill-indicator" data-proficiency="3">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 60%"></div>
+                                    </div>
+                                    <span class="skill-level">Intermediate</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">CI/CD Pipelines</span>
+                                <div class="skill-indicator" data-proficiency="4">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 80%"></div>
+                                    </div>
+                                    <span class="skill-level">Advanced</span>
+                                </div>
+                            </li>
+                            <li class="skill-item">
+                                <span class="skill-name">Figma/Design Tools</span>
+                                <div class="skill-indicator" data-proficiency="3">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: 60%"></div>
+                                    </div>
+                                    <span class="skill-level">Intermediate</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="section experience-section">
+            <div class="container">
+                <h2 class="section-title">Experience & Projects</h2>
+                <div class="experience-content">
+                    <div class="timeline">
+                        <div class="experience-item">
+                            <div class="timeline-marker"></div>
+                            <div class="experience-card">
+                                <div class="experience-header">
+                                    <h3 class="job-title">Senior Full Stack Developer</h3>
+                                    <div class="company-info">
+                                        <span class="company-name">TechCorp Solutions</span>
+                                        <span class="duration">2022 - Present</span>
+                                    </div>
+                                </div>
+                                <p class="job-description">Leading development of scalable web applications using modern technologies. Responsible for architecture decisions, code reviews, and mentoring junior developers. Collaborated with cross-functional teams to deliver high-quality software solutions.</p>
+                                <ul class="achievements">
+                                    <li>Architected and built a microservices platform serving 100K+ daily users</li>
+                                    <li>Reduced application load time by 60% through performance optimization</li>
+                                    <li>Led a team of 8 developers across 3 major product releases</li>
+                                    <li>Implemented CI/CD pipeline reducing deployment time from 2 hours to 15 minutes</li>
+                                </ul>
+                                <div class="technologies">
+                                    <span class="tech-tag">React</span>
+                                    <span class="tech-tag">Node.js</span>
+                                    <span class="tech-tag">AWS</span>
+                                    <span class="tech-tag">Docker</span>
+                                    <span class="tech-tag">PostgreSQL</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="experience-item">
+                            <div class="timeline-marker"></div>
+                            <div class="experience-card">
+                                <div class="experience-header">
+                                    <h3 class="job-title">Full Stack Developer</h3>
+                                    <div class="company-info">
+                                        <span class="company-name">InnovateLab Inc.</span>
+                                        <span class="duration">2020 - 2022</span>
+                                    </div>
+                                </div>
+                                <p class="job-description">Developed and maintained multiple client-facing applications. Worked closely with designers and product managers to implement user-friendly interfaces and robust backend systems.</p>
+                                <ul class="achievements">
+                                    <li>Built 5 production applications from concept to deployment</li>
+                                    <li>Improved code quality by implementing automated testing (95% coverage)</li>
+                                    <li>Mentored 3 junior developers and conducted technical interviews</li>
+                                    <li>Contributed to open-source projects with 2K+ GitHub stars</li>
+                                </ul>
+                                <div class="technologies">
+                                    <span class="tech-tag">Vue.js</span>
+                                    <span class="tech-tag">Python</span>
+                                    <span class="tech-tag">Django</span>
+                                    <span class="tech-tag">MongoDB</span>
+                                    <span class="tech-tag">Redis</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="experience-item">
+                            <div class="timeline-marker"></div>
+                            <div class="experience-card">
+                                <div class="experience-header">
+                                    <h3 class="job-title">Frontend Developer</h3>
+                                    <div class="company-info">
+                                        <span class="company-name">StartupXYZ</span>
+                                        <span class="duration">2018 - 2020</span>
+                                    </div>
+                                </div>
+                                <p class="job-description">Focused on creating responsive, accessible web applications. Collaborated with UX/UI designers to implement pixel-perfect designs and ensure optimal user experience across all devices.</p>
+                                <ul class="achievements">
+                                    <li>Developed responsive web applications for 50K+ monthly active users</li>
+                                    <li>Achieved 98% accessibility compliance (WCAG 2.1 AA standards)</li>
+                                    <li>Reduced bundle size by 40% through code splitting and optimization</li>
+                                    <li>Implemented design system used across 10+ products</li>
+                                </ul>
+                                <div class="technologies">
+                                    <span class="tech-tag">JavaScript</span>
+                                    <span class="tech-tag">React</span>
+                                    <span class="tech-tag">SASS</span>
+                                    <span class="tech-tag">Webpack</span>
+                                    <span class="tech-tag">Jest</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="experience-item">
+                            <div class="timeline-marker"></div>
+                            <div class="experience-card">
+                                <div class="experience-header">
+                                    <h3 class="job-title">Junior Web Developer</h3>
+                                    <div class="company-info">
+                                        <span class="company-name">WebDev Agency</span>
+                                        <span class="duration">2017 - 2018</span>
+                                    </div>
+                                </div>
+                                <p class="job-description">Started my professional journey building websites for small businesses and learning modern web development practices. Gained experience in both frontend and backend technologies.</p>
+                                <ul class="achievements">
+                                    <li>Delivered 20+ client websites with 100% on-time completion rate</li>
+                                    <li>Learned and applied modern JavaScript frameworks and libraries</li>
+                                    <li>Collaborated with senior developers on complex projects</li>
+                                    <li>Maintained and updated legacy codebases</li>
+                                </ul>
+                                <div class="technologies">
+                                    <span class="tech-tag">HTML5</span>
+                                    <span class="tech-tag">CSS3</span>
+                                    <span class="tech-tag">JavaScript</span>
+                                    <span class="tech-tag">PHP</span>
+                                    <span class="tech-tag">MySQL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section contact-section">
+            <div class="container">
+                <h2 class="section-title">Get In Touch</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3 class="contact-subtitle">Contact Information</h3>
+                        <div class="contact-item">
+                            <span class="contact-icon">📧</span>
+                            <div class="contact-details">
+                                <span class="contact-label">Email:</span>
+                                <a href="mailto:john.doe@example.com" class="contact-link email-link">john.doe@example.com</a>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📱</span>
+                            <div class="contact-details">
+                                <span class="contact-label">Phone:</span>
+                                <a href="tel:+1234567890" class="contact-link phone-link">+1 (234) 567-8900</a>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📍</span>
+                            <div class="contact-details">
+                                <span class="contact-label">Location:</span>
+                                <span class="contact-value">San Francisco, CA</span>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">💼</span>
+                            <div class="contact-details">
+                                <span class="contact-label">Status:</span>
+                                <span class="contact-value availability-status">Available for opportunities</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="social-media">
+                        <h3 class="social-title">Connect with me</h3>
+                        <ul class="social-links">
+                            <li>
+                                <a href="https://linkedin.com/in/johndoe" target="_blank" rel="noopener noreferrer" class="social-link linkedin-link" aria-label="Connect on LinkedIn">
+                                    <span class="social-icon">💼</span>
+                                    <div class="social-content">
+                                        <span class="social-text">LinkedIn</span>
+                                        <span class="social-description">Professional network</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://github.com/johndoe" target="_blank" rel="noopener noreferrer" class="social-link github-link" aria-label="View GitHub profile">
+                                    <span class="social-icon">🔗</span>
+                                    <div class="social-content">
+                                        <span class="social-text">GitHub</span>
+                                        <span class="social-description">Code repositories</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://twitter.com/johndoe" target="_blank" rel="noopener noreferrer" class="social-link twitter-link" aria-label="Follow on Twitter">
+                                    <span class="social-icon">🐦</span>
+                                    <div class="social-content">
+                                        <span class="social-text">Twitter</span>
+                                        <span class="social-description">Latest updates</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://portfolio.johndoe.com" target="_blank" rel="noopener noreferrer" class="social-link portfolio-link" aria-label="View portfolio website">
+                                    <span class="social-icon">🌐</span>
+                                    <div class="social-content">
+                                        <span class="social-text">Portfolio</span>
+                                        <span class="social-description">Featured projects</span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                        
+                        <div class="contact-cta">
+                            <p class="cta-text">Ready to collaborate? Let's discuss your next project!</p>
+                            <a href="mailto:john.doe@example.com?subject=Project%20Collaboration&body=Hi%20John,%0A%0AI'm%20interested%20in%20discussing%20a%20potential%20collaboration.%0A%0ABest%20regards," class="cta-button">
+                                Send Message
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="copyright">&copy; 2024 Your Name. All rights reserved.</p>
+            <p class="last-updated">Last updated: <time datetime="2024-12-25">December 25, 2024</time></p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/lazy-loading.js" defer></script>
+    <script src="js/main.min.js"></script>
+    <script src="js/animations.js" data-defer></script>
+</body>
+</html>
