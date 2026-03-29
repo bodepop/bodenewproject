@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - 404 Error</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --background-primary: #ffffff;
+            --background-secondary: #f8f9fa;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --font-size-lg: 1.125rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-4xl: 2.25rem;
+            --border-radius: 8px;
+            --transition-normal: 0.3s ease-in-out;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--spacing-xl);
+        }
+        
+        .error-container {
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-2xl);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            margin-bottom: var(--spacing-md);
+            opacity: 0.8;
+        }
+        
+        .error-title {
+            font-size: var(--font-size-4xl);
+            margin-bottom: var(--spacing-lg);
+            font-weight: 600;
+        }
+        
+        .error-message {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-2xl);
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: var(--spacing-md) var(--spacing-xl);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            transition: all var(--transition-normal);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-lg);
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 4rem;
+            }
+            
+            .error-title {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .error-container {
+                padding: var(--spacing-xl);
+            }
+            
+            .error-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">🔍</div>
+        <div class="error-code">404</div>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-message">
+            Sorry, the page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.
+        </p>
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">Go Home</a>
+            <a href="javascript:history.back()" class="btn">Go Back</a>
+        </div>
+    </div>
+    
+    <script>
+        // Track 404 errors for analytics
+        if (window.gtag) {
+            gtag('event', 'page_view', {
+                page_title: '404 Error',
+                page_location: window.location.href
+            });
+        }
+        
+        // Auto-redirect after 10 seconds
+        setTimeout(() => {
+            if (confirm('Would you like to be redirected to the home page?')) {
+                window.location.href = '/';
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
