@@ -5,7 +5,7 @@ response = fsx.describe_backups(
   Filters=[
   {
     'Name': 'file-system-id',
-    'Values': [ 'fs-75787gy88h8' ]
+    'Values': [ 'fs-' ]
   },
   ],
   MaxResults=100
