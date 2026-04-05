@@ -5,7 +5,7 @@ ec2 = boto3.client('ec2', region_name="eu-west-1")
 
 
 # Describe the instance
-response = ec2.describe_instances(InstanceIds=["i-036c61db688bb26f9"])
+response = ec2.describe_instances(InstanceIds=["i-"])
 
 # Extract instance details
 instance = response['Reservations'][0]['Instances'][0]
