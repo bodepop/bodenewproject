@@ -8,12 +8,24 @@ import io
 import boto3
 import subprocess
 import time
+import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from botocore.exceptions import ClientError
 
 load_dotenv()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Plotly dark theme defaults
+PLOTLY_LAYOUT = dict(
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    font_color="#c0c0d0",
+    legend_title="",
+    margin=dict(l=20, r=20, t=30, b=20),
+    height=350,
+)
 
 # --- Configuration ---
 GATEWAY_IP = "192.168.1.1"
@@ -34,205 +46,218 @@ DISABLE_AUTH = os.getenv("DISABLE_AUTH", "false").lower() == "true"
 # --- Page Config ---
 st.set_page_config(page_title="UniFi Network Dashboard", layout="wide", page_icon="🌐")
 
-# --- Colorful Theme CSS ---
+# --- Theme CSS ---
 st.markdown("""
 <style>
-    /* Main background */
+    /* Dark elegant background */
     .stApp {
-        background: linear-gradient(180deg, #f0f4ff 0%, #ffffff 100%);
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        color: #e0e0e0;
     }
     
-    /* Header */
+    /* Glowing title */
     h1 { 
-        font-size: 1.5em !important; 
+        font-size: 1.6em !important; 
         margin-bottom: 0.5rem !important;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 30%, #a855f7 60%, #ec4899 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-    }
-    
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        -webkit-overflow-scrolling: touch;
-        gap: 2px;
-        scrollbar-width: none;
-        background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
-        border-radius: 12px;
-        padding: 4px;
-    }
-    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { display: none; }
-    .stTabs [data-baseweb="tab"] {
-        white-space: nowrap;
-        font-size: 0.8em;
-        padding: 0.4rem 0.7rem;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white !important;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-    
-    /* Metric cards with colors */
-    [data-testid="stMetric"] {
-        border-radius: 12px;
-        padding: 14px 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border: none;
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(1) [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(1) [data-testid="stMetric"] label,
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(1) [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: white !important;
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) [data-testid="stMetric"] label,
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: white !important;
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(3) [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #fc5c7d 0%, #6a82fb 100%);
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(3) [data-testid="stMetric"] label,
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(3) [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: white !important;
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(4) [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(4) [data-testid="stMetric"] label,
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(4) [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: white !important;
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(5) [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(5) [data-testid="stMetric"] label,
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(5) [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: white !important;
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(6) [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(6) [data-testid="stMetric"] label,
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(6) [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: white !important;
-    }
-    
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-    }
-    [data-testid="stSidebar"] * {
-        color: white !important;
-    }
-    [data-testid="stSidebar"] .stAlert {
-        background: rgba(255,255,255,0.15);
-        border: none;
-    }
-    [data-testid="stSidebar"] input {
-        background: rgba(255,255,255,0.2) !important;
-        border: 1px solid rgba(255,255,255,0.3) !important;
-    }
-    
-    /* Buttons */
-    .stButton button {
-        min-height: 44px;
-        min-width: 44px;
-        border-radius: 10px;
-        font-weight: 500;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        transition: all 0.3s ease;
-    }
-    .stButton button:hover {
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        transform: translateY(-1px);
-    }
-    
-    /* Dataframes */
-    .stDataFrame {
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        text-shadow: 0 0 30px rgba(0, 210, 255, 0.15);
     }
     
     /* Subheaders */
-    h2, h3 {
-        color: #4a4a6a !important;
+    h2 { color: #a78bfa !important; font-size: 1.3em !important; }
+    h3 { color: #818cf8 !important; font-size: 1.1em !important; }
+    
+    /* Glass-morphism tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px; padding: 5px; gap: 3px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { display: none; }
+    .stTabs [data-baseweb="tab"] {
+        white-space: nowrap; font-size: 0.82em; padding: 0.5rem 0.8rem;
+        border-radius: 10px; color: #a0a0b0 !important;
+        transition: all 0.3s ease;
+    }
+    .stTabs [data-baseweb="tab"]:hover { color: white !important; background: rgba(255,255,255,0.05); }
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        font-weight: 600;
+    }
+    /* Nested tabs */
+    .stTabs .stTabs [data-baseweb="tab-list"] { background: rgba(255,255,255,0.03); }
+    .stTabs .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
     }
     
-    /* Dividers */
-    hr { border-color: #e8eaf6 !important; }
+    /* Metric cards - vibrant neon gradients */
+    [data-testid="stMetric"] {
+        border-radius: 14px; padding: 16px 18px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    [data-testid="stMetric"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    [data-testid="stMetric"] label { font-weight: 500; letter-spacing: 0.5px; }
+    [data-testid="stMetric"] [data-testid="stMetricValue"] { font-weight: 700; }
     
-    /* Success/Warning/Error messages */
-    .stAlert [data-testid="stAlertContentSuccess"] { border-radius: 10px; }
-    .stAlert [data-testid="stAlertContentWarning"] { border-radius: 10px; }
-    .stAlert [data-testid="stAlertContentError"] { border-radius: 10px; }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(1) [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(3) [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(4) [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(5) [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(6) [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    [data-testid="stMetric"] label,
+    [data-testid="stMetric"] [data-testid="stMetricValue"] { color: white !important; }
     
-    /* Charts */
+    /* Sidebar - dark glass */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    [data-testid="stSidebar"] * { color: #c4b5fd !important; }
+    [data-testid="stSidebar"] .stAlert { background: rgba(255,255,255,0.08); border: none; border-radius: 10px; }
+    [data-testid="stSidebar"] .stButton button {
+        background: rgba(99, 102, 241, 0.3) !important;
+        border: 1px solid rgba(99, 102, 241, 0.5) !important;
+    }
+    [data-testid="stSidebar"] input {
+        background: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        color: white !important;
+    }
+    
+    /* Buttons - neon glow */
+    .stButton button {
+        min-height: 44px; min-width: 44px;
+        border-radius: 10px; font-weight: 600;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        color: white; border: none;
+        transition: all 0.3s ease;
+        letter-spacing: 0.3px;
+    }
+    .stButton button:hover {
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 40px rgba(168, 85, 247, 0.3);
+        transform: translateY(-2px);
+    }
+    .stButton button:active { transform: translateY(0); }
+    
+    /* Download buttons */
+    .stDownloadButton button {
+        min-height: 44px;
+        border-radius: 10px; font-weight: 600;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.3s ease;
+    }
+    .stDownloadButton button:hover {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        transform: translateY(-2px);
+    }
+    .stDownloadButton button span { color: white !important; }
+    
+    /* Dataframes - glass */
+    .stDataFrame {
+        border-radius: 12px; overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    /* Charts - glass */
     .stChart {
+        border-radius: 12px; overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    /* Text */
+    .stMarkdown p, .stCaption { color: #c0c0d0; }
+    
+    /* Dividers */
+    hr { border-color: rgba(255,255,255,0.08) !important; }
+    
+    /* Alerts */
+    .stAlert { border-radius: 10px; }
+    
+    /* Progress bar */
+    .stProgress > div > div {
+        background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
         border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    /* Inputs */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div {
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: white !important;
+    }
+    
+    /* Checkboxes */
+    .stCheckbox label { color: #c0c0d0 !important; }
+    
+    /* Expanders */
+    .streamlit-expanderHeader {
+        border-radius: 8px;
+        background: rgba(255,255,255,0.03);
+    }
+    
+    /* Chat messages */
+    [data-testid="stChatMessage"] {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
     }
     
     /* Mobile */
     @media (max-width: 768px) {
-        .block-container { padding: 1rem 0.5rem !important; }
+        .block-container { padding: 0.8rem 0.4rem !important; }
+        h1 { font-size: 1.3em !important; text-align: center; }
         
-        [data-testid="stMetric"] {
-            padding: 8px 10px;
-            text-align: center;
-        }
-        [data-testid="stMetric"] label { font-size: 0.65em !important; }
-        [data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 1.1em !important; }
+        [data-testid="stMetric"] { padding: 10px 8px; text-align: center; }
+        [data-testid="stMetric"] label { font-size: 0.6em !important; }
+        [data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 1em !important; }
+        [data-testid="stHorizontalBlock"] { flex-wrap: wrap; gap: 4px; }
+        [data-testid="stColumn"] { min-width: 30% !important; flex: 1 1 30% !important; }
         
-        [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
-        [data-testid="stColumn"] { min-width: 45% !important; }
+        .stButton button { min-height: 50px; width: 100%; font-size: 0.9em; }
+        .stDataFrame { font-size: 0.7em; }
+        .stDataFrame [data-testid="stDataFrameResizable"] { overflow-x: auto !important; max-width: 100vw; }
         
-        .stMarkdown p { font-size: 0.9em; }
-        h2 { font-size: 1.2em !important; }
-        h3 { font-size: 1.1em !important; }
+        .stTabs [data-baseweb="tab"] { font-size: 0.72em; padding: 0.35rem 0.5rem; }
+        .stTabs .stTabs [data-baseweb="tab"] { font-size: 0.68em; padding: 0.3rem 0.4rem; }
         
-        .stDataFrame { font-size: 0.75em; }
-        .stDataFrame [data-testid="stDataFrameResizable"] {
-            overflow-x: auto !important;
-            max-width: 100vw;
-        }
-        
-        [data-testid="stSidebar"] { min-width: 200px !important; max-width: 250px !important; }
-        
-        .stButton button {
-            min-height: 48px;
-            width: 100%;
-            font-size: 0.85em;
-        }
-        
+        [data-testid="stSidebar"] { min-width: 180px !important; max-width: 220px !important; }
         .stChart { max-width: 100vw; overflow-x: auto; }
-        .stSelectbox, .stTextInput { font-size: 0.85em; }
-        .streamlit-expanderHeader { font-size: 0.85em !important; }
-        
-        .stTabs .stTabs [data-baseweb="tab"] {
-            font-size: 0.75em;
-            padding: 0.3rem 0.4rem;
-        }
+        #MainMenu, footer, header { display: none; }
     }
     
-    .stDataFrame [data-testid="stDataFrameResizable"] { overflow-x: auto; }
-    
-    @media (max-width: 768px) {
-        #MainMenu { display: none; }
-        footer { display: none; }
-        header { display: none; }
+    @media (max-width: 400px) {
+        [data-testid="stColumn"] { min-width: 45% !important; flex: 1 1 45% !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -878,6 +903,42 @@ elif clients:
 # Update uptime log
 uptime_log = update_uptime_log(client_list)
 
+# --- New Device Detection ---
+KNOWN_MACS_FILE = ".known_macs.json"
+
+def detect_new_devices(clients):
+    """Check for new devices and return any that haven't been seen before."""
+    known = set()
+    if os.path.exists(KNOWN_MACS_FILE):
+        with open(KNOWN_MACS_FILE) as f:
+            known = set(json.load(f))
+
+    current = {c["MAC"].lower() for c in clients if c.get("MAC")}
+    new_macs = current - known
+
+    # Save all known MACs
+    all_macs = list(known | current)
+    with open(KNOWN_MACS_FILE, "w") as f:
+        json.dump(all_macs, f)
+
+    new_devices = [c for c in clients if c.get("MAC", "").lower() in new_macs]
+    return new_devices
+
+new_devices = detect_new_devices(client_list)
+if new_devices:
+    st.warning(f"🚨 {len(new_devices)} NEW device(s) detected on your network!")
+    for d in new_devices:
+        st.markdown(f"- **{d['Name']}** — IP: {d['IP']} | MAC: {d['MAC']} | {d.get('Type', '')} | {d.get('Vendor', '')}")
+    # Send SNS alert if configured
+    if ENABLE_AWS and SNS_TOPIC_ARN:
+        try:
+            sns = boto3.client("sns", region_name=AWS_REGION)
+            msg = "🚨 New devices on your network:\n\n" + "\n".join(
+                f"  • {d['Name']} — IP: {d['IP']}, MAC: {d['MAC']}" for d in new_devices)
+            sns.publish(TopicArn=SNS_TOPIC_ARN, Subject="UniFi: New Device Alert", Message=msg)
+        except Exception:
+            pass
+
 wired = sum(1 for c in client_list if c.get("Type") == "WIRED")
 total_tx = sum(c.get("TX (MB)", 0) for c in client_list)
 total_rx = sum(c.get("RX (MB)", 0) for c in client_list)
@@ -925,7 +986,15 @@ with tab_clients:
 
         st.subheader("📊 Top 10 Clients by Data Usage")
         top = df_clients.nlargest(10, "RX (MB)")
-        st.bar_chart(top.set_index("Name")[["TX (MB)", "RX (MB)"]])
+        fig = px.bar(top, x="Name", y=["TX (MB)", "RX (MB)"], barmode="group",
+                     color_discrete_sequence=["#6366f1", "#ec4899"],
+                     template="plotly_dark")
+        fig.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+            font_color="#c0c0d0", legend_title="", xaxis_title="", yaxis_title="MB",
+            margin=dict(l=20, r=20, t=30, b=20), height=350,
+        )
+        st.plotly_chart(fig, width="stretch")
     else:
         st.info("No clients found.")
 
@@ -940,7 +1009,14 @@ with tab_alerts:
         st.dataframe(df_alerts, width="stretch", hide_index=True)
 
         st.subheader("📊 High Bandwidth Devices")
-        st.bar_chart(df_alerts.set_index("Name")[["TX (MB)", "RX (MB)"]])
+        fig = px.bar(df_alerts, x="Name", y=["TX (MB)", "RX (MB)"], barmode="stack",
+                     color_discrete_sequence=["#f59e0b", "#ef4444"],
+                     template="plotly_dark")
+        fig.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+            font_color="#c0c0d0", legend_title="", margin=dict(l=20, r=20, t=30, b=20), height=300,
+        )
+        st.plotly_chart(fig, width="stretch")
     else:
         st.success(f"No devices exceeding {threshold} MB threshold")
 
@@ -1136,10 +1212,14 @@ with tab_heatmap:
                     }).round(1)
 
                     st.subheader("📊 Average Clients by Hour")
-                    st.bar_chart(hourly[["Clients"]])
+                    fig = px.bar(hourly.reset_index(), x="Hour", y="Clients", color_discrete_sequence=["#6366f1"], template="plotly_dark")
+                    fig.update_layout(**PLOTLY_LAYOUT)
+                    st.plotly_chart(fig, width="stretch")
 
                     st.subheader("📊 Average Bandwidth by Hour")
-                    st.bar_chart(hourly[["TX (MB)", "RX (MB)"]])
+                    fig = px.bar(hourly.reset_index(), x="Hour", y=["TX (MB)", "RX (MB)"], barmode="group", color_discrete_sequence=["#6366f1", "#ec4899"], template="plotly_dark")
+                    fig.update_layout(**PLOTLY_LAYOUT)
+                    st.plotly_chart(fig, width="stretch")
 
                     # Day of week breakdown
                     daily = hm_df.groupby("Day").agg({
@@ -1149,7 +1229,9 @@ with tab_heatmap:
                     daily = daily.reindex([d for d in day_order if d in daily.index])
 
                     st.subheader("📊 Usage by Day of Week")
-                    st.bar_chart(daily[["RX (MB)"]])
+                    fig = px.bar(daily.reset_index(), x="Day", y="RX (MB)", color_discrete_sequence=["#10b981"], template="plotly_dark")
+                    fig.update_layout(**PLOTLY_LAYOUT)
+                    st.plotly_chart(fig, width="stretch")
 
                     # Peak hour identification
                     peak_hour = hourly["Clients"].idxmax()
@@ -1421,8 +1503,11 @@ with tab_uptime:
 
         # Uptime chart
         st.subheader("📊 Uptime by Device")
-        chart_df = df_uptime.set_index("Device")[["Uptime %"]].sort_values("Uptime %")
-        st.bar_chart(chart_df)
+        chart_df = df_uptime.sort_values("Uptime %")
+        fig = px.bar(chart_df, x="Device", y="Uptime %", color="Uptime %",
+                     color_continuous_scale=["#ef4444", "#f59e0b", "#10b981"], template="plotly_dark")
+        fig.update_layout(**PLOTLY_LAYOUT)
+        st.plotly_chart(fig, width="stretch")
 
         # Offline alerts
         offline = [d for d in uptime_data if "Offline" in d["Status"]]
@@ -1456,8 +1541,12 @@ with tab_history:
                     "TX (MB)": int(h.get("total_tx_mb", 0)),
                     "RX (MB)": int(h.get("total_rx_mb", 0)),
                 } for h in history])
-                st.line_chart(hist_df.set_index("Time")[["Clients"]])
-                st.line_chart(hist_df.set_index("Time")[["TX (MB)", "RX (MB)"]])
+                fig1 = px.line(hist_df, x="Time", y="Clients", color_discrete_sequence=["#6366f1"], template="plotly_dark")
+                fig1.update_layout(**{**PLOTLY_LAYOUT, "height": 250})
+                st.plotly_chart(fig1, width="stretch")
+                fig2 = px.area(hist_df, x="Time", y=["TX (MB)", "RX (MB)"], color_discrete_sequence=["#6366f1", "#ec4899"], template="plotly_dark")
+                fig2.update_layout(**{**PLOTLY_LAYOUT, "height": 250})
+                st.plotly_chart(fig2, width="stretch")
                 st.dataframe(hist_df, width="stretch", hide_index=True)
             else:
                 st.info("No historical data yet. Use 'Save Snapshot to DynamoDB' in the AWS tab to start collecting.")

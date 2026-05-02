@@ -1,0 +1,8 @@
+streamlit
+requests
+pandas
+urllib3
+boto3
+python-dotenv
+speedtest-cli
+plotly

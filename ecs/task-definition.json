@@ -1,0 +1,44 @@
+{
+  "family": "unifi-dashboard",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::672603477912:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::672603477912:role/ecsUnifiDashboardTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "unifi-dashboard",
+      "image": "672603477912.dkr.ecr.eu-west-1.amazonaws.com/unifi-dashboard:latest",
+      "portMappings": [
+        {
+          "containerPort": 8501,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {"name": "UNIFI_API_KEY", "value": "uffmh1s7sBG-PZpyOVmEuY9QIREtD_tn"},
+        {"name": "ENABLE_AWS", "value": "true"},
+        {"name": "AWS_REGION", "value": "eu-west-1"},
+        {"name": "DYNAMODB_TABLE", "value": "unifi-network-snapshots"},
+        {"name": "BEDROCK_MODEL_ID", "value": "eu.anthropic.claude-sonnet-4-20250514-v1:0"},
+        {"name": "GATEWAY_IP", "value": "192.168.1.1"},
+        {"name": "DASHBOARD_USERNAME", "value": "admin"},
+        {"name": "DASHBOARD_PASSWORD", "value": "UniFi@Dash2026!"},
+        {"name": "DISABLE_AUTH", "value": "true"},
+        {"name": "SES_SENDER", "value": "admin@bodeconsulting.com"},
+        {"name": "SES_RECIPIENT", "value": "bode@bodeconsulting.com"},
+        {"name": "SES_REGION", "value": "us-east-1"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/unifi-dashboard",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

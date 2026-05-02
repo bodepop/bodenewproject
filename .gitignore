@@ -1,5 +1,6 @@
 # Private keys - NEVER commit these
 *.pem
+.env
 
 # Virtual environments
 .venv/

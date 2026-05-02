@@ -1,0 +1,8 @@
+.venv/
+.vscode/
+.kiro/
+*.pem
+__pycache__/
+*.pyc
+tests/
+.git/

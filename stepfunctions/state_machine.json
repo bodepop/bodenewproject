@@ -1,0 +1,46 @@
+{
+  "Comment": "UniFi Network Incident Response System",
+  "StartAt": "ScanNetwork",
+  "States": {
+    "ScanNetwork": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:eu-west-1:672603477912:function:unifi-scan-network",
+      "Next": "DetectAnomalies",
+      "Retry": [{"ErrorEquals": ["States.ALL"], "MaxAttempts": 2, "IntervalSeconds": 5}]
+    },
+    "DetectAnomalies": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:eu-west-1:672603477912:function:unifi-detect-anomalies",
+      "Next": "CheckAnomalies",
+      "Retry": [{"ErrorEquals": ["States.ALL"], "MaxAttempts": 2, "IntervalSeconds": 5}]
+    },
+    "CheckAnomalies": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.has_anomalies",
+          "BooleanEquals": true,
+          "Next": "AnalyzeWithBedrock"
+        }
+      ],
+      "Default": "LogAllClear"
+    },
+    "AnalyzeWithBedrock": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:eu-west-1:672603477912:function:unifi-analyze-bedrock",
+      "Next": "RespondToIncident",
+      "Retry": [{"ErrorEquals": ["States.ALL"], "MaxAttempts": 2, "IntervalSeconds": 10}]
+    },
+    "RespondToIncident": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:eu-west-1:672603477912:function:unifi-respond-incident",
+      "End": true,
+      "Retry": [{"ErrorEquals": ["States.ALL"], "MaxAttempts": 2, "IntervalSeconds": 5}]
+    },
+    "LogAllClear": {
+      "Type": "Pass",
+      "Result": {"status": "all_clear", "message": "No anomalies detected"},
+      "End": true
+    }
+  }
+}
