@@ -1,8 +1,10 @@
-# Private keys - NEVER commit these
+# Private keys & secrets
 *.pem
 .env
+.env.save
+ecs/task-definition.json
 
-# Virtual environments
+# Virtual environments & IDE
 .venv/
 .vscode/
 .kiro/
@@ -15,3 +17,39 @@ improved_cv_bode_popoola.md
 # Python
 __pycache__/
 *.pyc
+
+# Local data files
+.deco_history.json
+.deco_uptime.json
+.deco_known_devices.json
+.deco_security_checklist.json
+.deco_parental_rules.json
+.device_uptime_log.json
+.known_devices.json
+.known_macs.json
+.parental_rules.json
+
+# Docker artifacts
+*.tar.gz
+deco-dashboard.tar.gz
+
+# Lambda dependencies (only push source code)
+lambda/bin/
+lambda/certifi*/
+lambda/charset_normalizer*/
+lambda/idna*/
+lambda/requests*/
+lambda/urllib3*/
+lambda/*.so
+lambda/*.zip
+
+# Step Functions zips
+stepfunctions/*.zip
+
+# Screenshots & generated files
+*.png
+*.pdf
+mdpdf.log
+
+# Test files
+test_deco.py
